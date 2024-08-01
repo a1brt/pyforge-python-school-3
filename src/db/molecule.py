@@ -1,9 +1,13 @@
 from random import randint
 
-from utils.chem import substructure_search, valid_smile
-from models.molecule import RequestMolecule
+from src.utils.chem import substructure_search, valid_smile
+from src.models.molecule import RequestMolecule
 
-molecules_table = []
+molecules_table = [
+    {"smile": "COO", "id": 124},
+    {"smile": "COC", "id": 1324},
+    {"smile": "CC", "id": 24},
+]
 
 
 def find_by_id(id: int):

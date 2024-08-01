@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ValidationInfo, Field, field_validator
 
-from utils.chem import valid_smile
+from src.utils.chem import valid_smile
 
 
 class BaseMolecule(BaseModel):
@@ -22,7 +22,7 @@ class ResponseMolecule(BaseMolecule):
 
 
 class UploadResponse(BaseModel):
-    success: int = Field(example=4)
-    failed: int = Field(example=3)
+    failed: int = Field(example=2)
+    success: int = Field(example=3)
     rejected_smiles: list[str] = Field(examples=[["not-a-smile", "CC.O"]])
     created_smile_ids: list[int] = Field(examples=[[1324, 2246, 7894]])

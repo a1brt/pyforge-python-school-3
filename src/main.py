@@ -1,10 +1,16 @@
 import uvicorn
 from fastapi import FastAPI
+from os import getenv
 
-from routers import molecules
+from src.routers import molecules
 
 app = FastAPI(title="Python Summer School 2024: SMILES")
 app.include_router(molecules.router, prefix="/molecules", tags=["molecules"])
+
+
+@app.get("/")
+def get_server():
+    return {"server_id": getenv("SERVER_ID", "1")}
 
 
 if __name__ == "__main__":

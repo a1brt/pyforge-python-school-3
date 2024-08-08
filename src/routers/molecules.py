@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile
-from utils.parser import parse_text_file
 
-from db.molecule import (
+from src.utils.parser import parse_text_file
+from src.db.molecule import (
     get_filtered,
     get_all,
     find_by_id,
@@ -10,22 +10,23 @@ from db.molecule import (
     update_by_id,
     delete_by_id,
 )
-from models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
-from utils.chem import valid_smile
+from src.models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
+from src.utils.chem import valid_smile
 
-router = APIRouter()
+router = APIRouter(prefix="/molecules", tags=["molecules"])
 
 
 def valid_smile_string(
-    smile: str | None = Query(
+    smile: str | None= Query(
         None,
         description="A SMILES string representation of a molecule",
-        example="CCO",
+        examples=["CCO"],
     )
 ):
     if not smile:
-        return smile
-
+        raise HTTPException(
+            status_code=422, detail="SMILES is not specified."
+        )
     if not valid_smile(smile):
         raise HTTPException(
             status_code=422, detail=f"'{smile}' is not a valid SMILES string."
@@ -37,18 +38,23 @@ def valid_smile_string(
 @router.get(
     "",
     summary="Get all molecules",
-    description="""Get all molecules or seach for all
-                containing a specfied substructre""",
+    description="Get all molecules from db",
 )
-async def get_all_molecules(
-    substructre: str | None = Depends(valid_smile_string),
-) -> list[ResponseMolecule]:
-    if substructre:
-        filtered_molecules = get_filtered(substructre)
-        return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
-
+async def get_all_molecules() -> list[ResponseMolecule]:
     molecules = get_all()
     return [ResponseMolecule.model_validate(m) for m in molecules]
+
+
+@router.get(
+    "/search",
+    summary="Get molecules by substructre",
+    description="Get all molecules that contain the specified substructure",
+)
+async def search_molecules_by_substructure(
+    substructure: str = Depends(valid_smile_string),
+) -> list[ResponseMolecule]:
+    filtered_molecules = get_filtered(substructure)
+    return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
 
 
 @router.get(
@@ -83,7 +89,7 @@ async def create_molecule(request: RequestMolecule) -> ResponseMolecule:
     description="""Upload a text file with SMILE's seperated
                    by commas to save them""",
 )
-async def upload_molecules(file: UploadFile):
+async def upload_molecules(file: UploadFile) -> UploadResponse:
     file_conetnt = await parse_text_file(file)
     result = create_in_bulk(file_conetnt)
 

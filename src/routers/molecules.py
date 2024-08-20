@@ -13,17 +13,20 @@ from src.db.molecule import (
 from src.models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
 from src.utils.chem import valid_smile
 
-router = APIRouter()
+router = APIRouter(prefix="/molecules", tags=["molecules"])
 
 
 def valid_smile_string(
-    smile: str = Query(
-        ...,
+    smile: str | None= Query(
+        None,
         description="A SMILES string representation of a molecule",
-        example="CCO",
+        examples=["CCO"],
     )
 ):
-
+    if not smile:
+        raise HTTPException(
+            status_code=422, detail="SMILES is not specified."
+        )
     if not valid_smile(smile):
         raise HTTPException(
             status_code=422, detail=f"'{smile}' is not a valid SMILES string."
@@ -48,9 +51,9 @@ async def get_all_molecules() -> list[ResponseMolecule]:
     description="Get all molecules that contain the specified substructure",
 )
 async def search_molecules_by_substructure(
-    substructre: str = Depends(valid_smile_string),
+    substructure: str = Depends(valid_smile_string),
 ) -> list[ResponseMolecule]:
-    filtered_molecules = get_filtered(substructre)
+    filtered_molecules = get_filtered(substructure)
     return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
 
 

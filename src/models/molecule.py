@@ -4,7 +4,7 @@ from src.utils.chem import valid_smile
 
 
 class BaseMolecule(BaseModel):
-    smile: str = Field(example="COO")
+    smile: str = Field(examples=["COO"])
 
     @field_validator("smile")
     def check_valid_smile(cls, v: str, info: ValidationInfo):
@@ -18,11 +18,11 @@ class RequestMolecule(BaseMolecule):
 
 
 class ResponseMolecule(BaseMolecule):
-    id: int = Field(example=1324)
+    id: int = Field(examples=[1324])
 
 
 class UploadResponse(BaseModel):
-    failed: int = Field(example=2)
-    success: int = Field(example=3)
+    failed: int = Field(examples=[2])
+    success: int = Field(examples=[3])
     rejected_smiles: list[str] = Field(examples=[["not-a-smile", "CC.O"]])
     created_smile_ids: list[int] = Field(examples=[[1324, 2246, 7894]])

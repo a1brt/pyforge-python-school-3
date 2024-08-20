@@ -5,7 +5,7 @@ from os import getenv
 from src.routers import molecules
 
 app = FastAPI(title="Python Summer School 2024: SMILES")
-app.include_router(molecules.router, prefix="/molecules", tags=["molecules"])
+app.include_router(molecules.router)
 
 
 @app.get("/")

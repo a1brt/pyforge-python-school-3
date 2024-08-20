@@ -9,6 +9,9 @@ def substructure_search(mols, mol):
 
 
 def valid_smile(s: str):
+    if not isinstance(s, str):
+        return False
+
     mol = Chem.MolFromSmiles(s)
     if mol is None:
         return False

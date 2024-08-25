@@ -10,7 +10,7 @@ from src.db.molecule import (
     update_by_id,
     delete_by_id,
 )
-from src.models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
+from src.models.web_models import RequestMolecule, ResponseMolecule, UploadResponse
 from src.utils.chem import valid_smile
 
 router = APIRouter(prefix="/molecules", tags=["molecules"])

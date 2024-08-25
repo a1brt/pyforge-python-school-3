@@ -1,0 +1,16 @@
+from sqlalchemy.orm import Mapped
+from src.db.database import Base, str_uniq, int_pk
+
+
+class Drug(Base):
+    id: Mapped[int_pk]
+    smiles: Mapped[str_uniq]
+
+    def __str__(self):
+        return (
+            f"{self.__class__.__name__}(id={self.id}, "
+            f"smiles={self.smiles!r})"
+        )
+
+    def __repr__(self):
+        return str(self)

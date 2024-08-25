@@ -2,7 +2,7 @@ from sqlalchemy.orm import Mapped
 from src.db.database import Base, str_uniq, int_pk
 
 
-class Drug(Base):
+class Molecule(Base):
     id: Mapped[int_pk]
     smiles: Mapped[str_uniq]
 

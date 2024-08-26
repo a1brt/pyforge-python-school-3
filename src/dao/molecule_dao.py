@@ -2,7 +2,7 @@ from sqlalchemy import delete
 from sqlalchemy.future import select
 from src.models.db_models import Molecule
 from src.db.database import async_session_maker
-from base import BaseDAO
+from src.dao.base import BaseDAO
 
 
 class MoleculeDAO(BaseDAO):

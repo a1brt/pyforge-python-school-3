@@ -12,21 +12,20 @@ from src.db.molecule import (
 )
 from src.models.web_models import RequestMolecule, ResponseMolecule, UploadResponse
 from src.utils.chem import valid_smile
+from src.dao.molecule_dao import MoleculeDAO
 
 router = APIRouter(prefix="/molecules", tags=["molecules"])
 
 
 def valid_smile_string(
-    smile: str | None= Query(
+    smile: str | None = Query(
         None,
         description="A SMILES string representation of a molecule",
         examples=["CCO"],
     )
 ):
     if not smile:
-        raise HTTPException(
-            status_code=422, detail="SMILES is not specified."
-        )
+        raise HTTPException(status_code=422, detail="SMILES is not specified.")
     if not valid_smile(smile):
         raise HTTPException(
             status_code=422, detail=f"'{smile}' is not a valid SMILES string."
@@ -41,8 +40,8 @@ def valid_smile_string(
     description="Get all molecules from db",
 )
 async def get_all_molecules() -> list[ResponseMolecule]:
-    molecules = get_all()
-    return [ResponseMolecule.model_validate(m) for m in molecules]
+    molecules = await MoleculeDAO.find_all()
+    return [ResponseMolecule(**m.to_dict()) for m in molecules]
 
 
 @router.get(
@@ -63,7 +62,7 @@ async def search_molecules_by_substructure(
     description="Get the molecule with the specifed id",
 )
 async def get_molecule_by_id(molecule_id: int) -> ResponseMolecule:
-    molecule = find_by_id(molecule_id)
+    molecule = MoleculeDAO.find_one_or_none_by_id(molecule_id)
     if not molecule:
         raise HTTPException(
             status_code=404, detail=f"Molecule not found by id: {molecule_id}"
@@ -77,9 +76,9 @@ async def get_molecule_by_id(molecule_id: int) -> ResponseMolecule:
     summary="Create a molecule",
     description="Create a molecule with specified SMILE",
 )
-async def create_molecule(request: RequestMolecule) -> ResponseMolecule:
-    created_molecule = create(request)
-    return ResponseMolecule.model_validate(created_molecule)
+async def create_molecule(request: RequestMolecule) -> int:
+    created_molecule_id = await MoleculeDAO.add_molecule(**request.model_dump())
+    return created_molecule_id
 
 
 @router.post(

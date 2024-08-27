@@ -52,7 +52,7 @@ async def get_all_molecules() -> list[ResponseMolecule]:
 async def search_molecules_by_substructure(
     substructure: str = Depends(valid_smile_string),
 ) -> list[ResponseMolecule]:
-    filtered_molecules = get_filtered(substructure)
+    filtered_molecules = await MoleculeDAO.find_by_substructure(substructure)
     return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
 
 
@@ -62,7 +62,7 @@ async def search_molecules_by_substructure(
     description="Get the molecule with the specifed id",
 )
 async def get_molecule_by_id(molecule_id: int) -> ResponseMolecule:
-    molecule = MoleculeDAO.find_one_or_none_by_id(molecule_id)
+    molecule = await MoleculeDAO.find_full_data(molecule_id)
     if not molecule:
         raise HTTPException(
             status_code=404, detail=f"Molecule not found by id: {molecule_id}"
@@ -104,7 +104,7 @@ async def upload_molecules(file: UploadFile) -> UploadResponse:
 async def update_molecule_by_id(
     molecule_id: int, request: RequestMolecule
 ) -> ResponseMolecule:
-    updated_molecule = update_by_id(molecule_id, request)
+    updated_molecule = await MoleculeDAO.update_molecule_by_id(molecule_id, **request.model_dump())
     if not updated_molecule:
         raise HTTPException(
             status_code=404, detail=f"Molecule not found by id: {molecule_id}"
@@ -119,7 +119,7 @@ async def update_molecule_by_id(
     description="Delete the moleclue with the specified id",
 )
 async def delete_molecule_by_id(molecule_id: int):
-    deleted = delete_by_id(molecule_id)
+    deleted = await MoleculeDAO.delete_molecule_by_id(molecule_id)
     if not deleted:
         raise HTTPException(
             status_code=404, detail=f"Molecule not found by id: {molecule_id}"

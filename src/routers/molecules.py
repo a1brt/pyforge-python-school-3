@@ -2,13 +2,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile
 
 from src.utils.parser import parse_text_file
 from src.db.molecule import (
-    get_filtered,
-    get_all,
-    find_by_id,
-    create,
     create_in_bulk,
-    update_by_id,
-    delete_by_id,
 )
 from src.models.web_models import RequestMolecule, ResponseMolecule, UploadResponse
 from src.utils.chem import valid_smile

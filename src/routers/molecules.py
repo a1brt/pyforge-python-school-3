@@ -2,31 +2,24 @@ from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile
 
 from src.utils.parser import parse_text_file
 from src.db.molecule import (
-    get_filtered,
-    get_all,
-    find_by_id,
-    create,
     create_in_bulk,
-    update_by_id,
-    delete_by_id,
 )
-from src.models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
+from src.models.web_models import RequestMolecule, ResponseMolecule, UploadResponse
 from src.utils.chem import valid_smile
+from src.dao.molecule_dao import MoleculeDAO
 
 router = APIRouter(prefix="/molecules", tags=["molecules"])
 
 
 def valid_smile_string(
-    smile: str | None= Query(
+    smile: str | None = Query(
         None,
         description="A SMILES string representation of a molecule",
         examples=["CCO"],
     )
 ):
     if not smile:
-        raise HTTPException(
-            status_code=422, detail="SMILES is not specified."
-        )
+        raise HTTPException(status_code=422, detail="SMILES is not specified.")
     if not valid_smile(smile):
         raise HTTPException(
             status_code=422, detail=f"'{smile}' is not a valid SMILES string."
@@ -41,8 +34,8 @@ def valid_smile_string(
     description="Get all molecules from db",
 )
 async def get_all_molecules() -> list[ResponseMolecule]:
-    molecules = get_all()
-    return [ResponseMolecule.model_validate(m) for m in molecules]
+    molecules = await MoleculeDAO.find_all()
+    return [ResponseMolecule(**m.to_dict()) for m in molecules]
 
 
 @router.get(
@@ -53,7 +46,7 @@ async def get_all_molecules() -> list[ResponseMolecule]:
 async def search_molecules_by_substructure(
     substructure: str = Depends(valid_smile_string),
 ) -> list[ResponseMolecule]:
-    filtered_molecules = get_filtered(substructure)
+    filtered_molecules = await MoleculeDAO.find_by_substructure(substructure)
     return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
 
 
@@ -63,7 +56,7 @@ async def search_molecules_by_substructure(
     description="Get the molecule with the specifed id",
 )
 async def get_molecule_by_id(molecule_id: int) -> ResponseMolecule:
-    molecule = find_by_id(molecule_id)
+    molecule = await MoleculeDAO.find_full_data(molecule_id)
     if not molecule:
         raise HTTPException(
             status_code=404, detail=f"Molecule not found by id: {molecule_id}"
@@ -77,9 +70,9 @@ async def get_molecule_by_id(molecule_id: int) -> ResponseMolecule:
     summary="Create a molecule",
     description="Create a molecule with specified SMILE",
 )
-async def create_molecule(request: RequestMolecule) -> ResponseMolecule:
-    created_molecule = create(request)
-    return ResponseMolecule.model_validate(created_molecule)
+async def create_molecule(request: RequestMolecule) -> int:
+    created_molecule_id = await MoleculeDAO.add_molecule(**request.model_dump())
+    return created_molecule_id
 
 
 @router.post(
@@ -105,7 +98,7 @@ async def upload_molecules(file: UploadFile) -> UploadResponse:
 async def update_molecule_by_id(
     molecule_id: int, request: RequestMolecule
 ) -> ResponseMolecule:
-    updated_molecule = update_by_id(molecule_id, request)
+    updated_molecule = await MoleculeDAO.update_molecule_by_id(molecule_id, **request.model_dump())
     if not updated_molecule:
         raise HTTPException(
             status_code=404, detail=f"Molecule not found by id: {molecule_id}"
@@ -120,7 +113,7 @@ async def update_molecule_by_id(
     description="Delete the moleclue with the specified id",
 )
 async def delete_molecule_by_id(molecule_id: int):
-    deleted = delete_by_id(molecule_id)
+    deleted = await MoleculeDAO.delete_molecule_by_id(molecule_id)
     if not deleted:
         raise HTTPException(
             status_code=404, detail=f"Molecule not found by id: {molecule_id}"

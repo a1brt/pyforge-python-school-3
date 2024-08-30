@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile
+import logging
 
 from src.utils.parser import parse_text_file
 from src.db.molecule import (
@@ -7,6 +8,9 @@ from src.db.molecule import (
 from src.models.web_models import RequestMolecule, ResponseMolecule, UploadResponse
 from src.utils.chem import valid_smile
 from src.dao.molecule_dao import MoleculeDAO
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/molecules", tags=["molecules"])
 
